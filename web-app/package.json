@@ -1,0 +1,34 @@
+{
+  "name": "msal-node-auth-code",
+  "version": "1.0.0",
+  "description": "sample web app for msal-node",
+  "scripts": {
+    "start": "node ./bin/www",
+    "start:single": "npm start -- --im=single --cm=none --mc=false --out=auth-code-single-no-cache.txt",
+    "start:multi": "npm start -- --im=multi --cm=none --mc=false --out=auth-code-multi-no-cache.txt",
+    "clinic:doctor:single": "clinic doctor -- node ./bin/www --im=single --cm=none --mc=false --out=auth-code-single-no-cache.txt",
+    "clinic:bubbleprof:single": "clinic bubbleprof -- node ./bin/www --im=single --cm=none --mc=false --out=auth-code-single-no-cache.txt",
+    "test": "playwright test",
+    "postinstall": "npx playwright install --with-deps chromium"
+  },
+  "author": "Microsoft",
+  "license": "MIT",
+  "dependencies": {
+    "@azure/msal-node": "^1.14.5",
+    "axios": "^1.0.0",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.1",
+    "express-session": "^1.17.3",
+    "hbs": "^4.2.0",
+    "http-errors": "^2.0.0",
+    "morgan": "^1.10.0",
+    "yargs": "^17.6.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.29.0",
+    "autocannon": "^7.10.0",
+    "clinic": "^12.0.0",
+    "playwright": "^1.29.0"
+  }
+}
