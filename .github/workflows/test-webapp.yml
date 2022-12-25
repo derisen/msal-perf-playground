@@ -29,11 +29,6 @@ jobs:
       with:
         node-version: ${{ matrix.node }}
 
-    - name: Clean Install
-      env:
-        RUNNING_NODE_CI: 1
-      run: npm ci
-
     - name: Install Sample
       working-directory: web-app
       run: npm install
