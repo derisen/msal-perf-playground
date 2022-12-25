@@ -19,8 +19,10 @@ module.exports = (options) => {
         postLogoutRedirectUri: POST_LOGOUT_REDIRECT_URI,
         instanceMode: options.instanceMode,
         cacheMode: options.cacheMode,
+        cacheSize: options.cacheSize,
         metadataCaching: options.metadataCaching,
         outputPath: options.outputPath,
+        scenarioName: options.scenarioName
     });
 
     const router = express.Router();

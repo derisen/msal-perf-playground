@@ -24,7 +24,7 @@ test.describe("Auth Code AAD Tests", () => {
     let username: string;
     let accountPwd: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/web-app/aad`;
+    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}`;
 
     test.beforeAll(async () => {
         browser = await chromium.launch();
@@ -55,6 +55,7 @@ test.describe("Auth Code AAD Tests", () => {
         });
 
         test("Acquire token with AAD", async () => {
+            // login
             const screenshot = new Screenshot(`${screenshotFolder}/acquire-token-with-aad`);
             await page.goto('/');
             await clickSignIn(page, screenshot);
@@ -64,6 +65,7 @@ test.describe("Auth Code AAD Tests", () => {
             await page.waitForSelector("#acquireToken");
             await screenshot.takeScreenshot(page, "samplePagePostLogin");
 
+            // first acquireToken call
             page.click("#acquireToken");
             await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
             await screenshot.takeScreenshot(page, "samplePageAcquireTokenCallGraph");
@@ -73,8 +75,19 @@ test.describe("Auth Code AAD Tests", () => {
             await page.waitForSelector("#goBack");
             page.click("#goBack");
 
+            // second acquireToken call
+            page.click("#acquireToken");
+            await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
+            await screenshot.takeScreenshot(page, "samplePageAcquireTokenCallGraph");
+            await expect(page.locator(`text=Microsoft Graph API`).first()).toBeVisible();
+            await expect(page.locator(`text=${username}`).first()).toBeVisible();
+
+            await page.waitForSelector("#goBack");
+            page.click("#goBack");
+
+            // logout
             await clickSignOut(page, screenshot);
-            await page.locator(`text=${username}`).click()
+            await page.locator(`text=${username}`).click();
             await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
             await screenshot.takeScreenshot(page, "samplePagePostLogout");
             await expect(page.locator(`text=${username}`).first()).not.toBeVisible();

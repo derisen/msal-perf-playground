@@ -4,7 +4,7 @@
  */
 
 require('dotenv').config();
-var msal = require('@azure/msal-node');
+const msal = require('@azure/msal-node');
 
 /**
  * Configuration object to be passed to MSAL instance on creation.
@@ -17,6 +17,9 @@ const msalConfig = {
         authority: process.env.CLOUD_INSTANCE + process.env.TENANT_ID, // Full directory URL, in the form of https://login.microsoftonline.com/<tenant>
         clientSecret: process.env.CLIENT_SECRET // Client secret generated from the app registration in Azure portal
     },
+    // cache: {
+    //     cachePlugin: require('./utils/cachePlugin')('cache.json')
+    // },
     system: {
         loggerOptions: {
             loggerCallback(loglevel, message, containsPii) {

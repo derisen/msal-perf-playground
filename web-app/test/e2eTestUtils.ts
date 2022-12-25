@@ -37,7 +37,7 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
 
     await screenshot.takeScreenshot(page, "loginPage");
     await page.type("#i0116", username);
-    await screenshot.takeScreenshot(page, "loginPageUsernameFilled")
+    await screenshot.takeScreenshot(page, "loginPageUsernameFilled");
 
     await Promise.all([
         page.waitForNavigation({ waitUntil: "load" }),

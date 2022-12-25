@@ -18,12 +18,13 @@ var authRouter = require('./routes/auth');
 
 const yargs = require('yargs');
 
-
 const options = yargs
-    .usage('Usage: --instanceMode <singe | multi> --cacheMode <node | session | distributed> --metadataCaching <metadata_caching> --outputPath <output_path>')
+    .usage('Usage: --instanceMode <singe | multi> --cacheMode <session | distributed> --metadataCaching <metadata_caching> --outputPath <output_path>')
     .option('instanceMode', { alias: 'im', describe: 'instance mode', type: 'string', demandOption: true })
-    .option('cacheMode', { alias: 'cm', describe: 'cache mode', type: 'string', demandOption: true })
+    .option('cacheMode', { alias: 'cm', describe: 'cache mode', type: 'string', demandOption: false })
+    .option('cacheSize', { alias: 'cs', describe: 'cache size', type: 'number', demandOption: false })
     .option('metadataCaching', { alias: 'mc', describe: 'whether to cache metadata', type: 'boolean', demandOption: true })
+    .option('scenarioName', { alias: 'sn', describe: 'describe current scenario', type: 'string', demandOption: true })
     .option('outputPath', { alias: 'out', describe: 'path to measurement output', type: 'string', demandOption: true })
     .argv;
 
@@ -35,7 +36,7 @@ const app = express();
  * familiarize yourself with available options. Visit: https://www.npmjs.com/package/express-session
  */
 app.use(session({
-    secret: process.env.EXPRESS_SESSION_SECRET,
+    secret: "keyboard cat",
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -58,8 +59,10 @@ app.use('/users', usersRouter);
 app.use('/auth', authRouter({
     instanceMode: options.instanceMode,
     cacheMode: options.cacheMode,
+    cacheSize: options.cacheSize,
     metadataCaching: options.metadataCaching,
-    outputPath: options.outputPath
+    outputPath: options.outputPath,
+    scenarioName: options.scenarioName
 }));
 
 // catch 404 and forward to error handler

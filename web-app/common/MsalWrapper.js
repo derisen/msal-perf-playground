@@ -1,20 +1,10 @@
 const { performance, PerformanceObserver } = require("perf_hooks");
 const fs = require('fs');
-
+const chalk = require('chalk');
 const msal = require('@azure/msal-node');
 const axios = require('axios');
 
-// mode = {
-//     msalConfig
-//     redirectUri
-//     instanceMode: "single" | "multiple",
-//     cacheMode: "session" | "in-memory" | "redis",
-//     cacheSize: 1000,
-//     metadataCaching: true | false
-//     outputPath: "measurement.txt"
-// }
-
-// msalWrapper -> login, logout, acquireToken, handleRedirect
+const generateCache = require('../utils/generateCache');
 
 class MsalWrapper {
     config;
@@ -23,18 +13,32 @@ class MsalWrapper {
     perfObserver;
 
     constructor(config) {
-        console.log("config for msalWrapper: ", config); // TODO: remove this line
-
         this.config = config;
         this.cryptoProvider = new msal.CryptoProvider();
         this.msalInstance = new msal.ConfidentialClientApplication(this.config.msalConfig);
+
+        if (this.config.cacheSize) {
+            this.prepopulateCache(this.config.cacheSize);
+        }
+
         this.initializePerfObserver();
+    }
+
+    prepopulateCache(size) {
+        // generate a dummy cache and prepopulate the cache with it
+        const dummyCache = generateCache(size);
+        const stringifiedCache = JSON.stringify(dummyCache);
+
+        // or read from a file
+        //const cacheFile = fs.readFileSync('./data/cache.json', 'utf8');
+
+        this.msalInstance.getTokenCache().deserialize(stringifiedCache);
     }
 
     initializePerfObserver() {
         this.perfObserver = new PerformanceObserver((items) => {
             items.getEntries().forEach((entry) => {
-                const data = `${entry.entryType} ${entry.name} ${entry.startTime} ${entry.duration}\n`;
+                const data = `| ${this.config.scenarioName} | ${entry.name} | ${entry.duration} |\n`;
                 fs.appendFile(this.config.outputPath, data, function (err) {
                     if (err) throw err;
                 });
@@ -52,9 +56,11 @@ class MsalWrapper {
     getMsalInstance(instanceMode, metadata) {
         switch (instanceMode) {
             case "single":
+                console.log(chalk.green("instanceMode is single, returning the same instance"));
                 return this.msalInstance;
             case "multi":
-                if (this.config.metadataCaching && !metadata) {
+                if (this.config.metadataCaching && metadata) {
+                    console.log(chalk.green("instanceMode is multi with metadata caching enabled, returning a new instance"));
                     return new msal.ConfidentialClientApplication({
                         auth: {
                             ...this.config.msalConfig.auth,
@@ -66,7 +72,7 @@ class MsalWrapper {
                         }
                     });
                 }
-
+                console.log(chalk.green("instanceMode is multi, returning a new instance"));
                 return new msal.ConfidentialClientApplication(this.config.msalConfig);
             default:
                 break;
@@ -109,10 +115,11 @@ class MsalWrapper {
         };
 
         if (this.config.metadataCaching) {
+            console.log(chalk.green("metadata caching is enabled, fetching metadata from the authority and cloud discovery endpoints"))
             // Get the metadata from the authority and cloud discovery endpoints
             const cloudDiscoveryMetadata = await this.getCloudDiscoveryMetadata("cbaf2168-de14-4c72-9d88-f5f05366dbef");
             const authorityMetadata = await this.getAuthorityMetadata("cbaf2168-de14-4c72-9d88-f5f05366dbef");
-
+            
             // Store the metadata in the session
             req.session.metadata = {
                 cloudDiscoveryMetadata: JSON.stringify(cloudDiscoveryMetadata),
@@ -127,11 +134,12 @@ class MsalWrapper {
     };
 
     async acquireToken(req, res, next) {
-        const msalInstance = this.getMsalInstance(this.config.instanceMode);
+        const msalInstance = this.getMsalInstance(this.config.instanceMode, req.session.metadata);
 
         try {
             performance.mark("acquireTokenSilent-start");
             if (this.config.cacheMode === "session") {
+                console.log(chalk.green("cacheMode is session, deserializing the cache blob from session store"));
                 // deserialize the cache blob from session store
                 msalInstance.getTokenCache().deserialize(req.session.tokenCache);
             }
@@ -140,6 +148,7 @@ class MsalWrapper {
                 scopes: ["User.Read"],
             });
             if (this.config.cacheMode === "session") {
+                console.log(chalk.green("cacheMode is session, serializing the cache blob to session store"));
                 // deserialize the cache blob from session store
                 req.session.tokenCache = msalInstance.getTokenCache().serialize();
             }
@@ -189,10 +198,11 @@ class MsalWrapper {
                 req.session.authCodeRequest.codeVerifier = req.session.pkceCodes.verifier // PKCE Code Verifier
 
                 try {
-                    const msalInstance = this.getMsalInstance(this.config.instanceMode);
+                    const msalInstance = this.getMsalInstance(this.config.instanceMode, req.session.metadata);
                     performance.mark("acquireTokenByCode-start");
                     const tokenResponse = await msalInstance.acquireTokenByCode(req.session.authCodeRequest);
                     if (this.config.cacheMode === "session") {
+                        console.log(chalk.green("cacheMode is session, serializing the cache blob to session store"));
                         req.session.tokenCache = msalInstance.getTokenCache().serialize();
                     }
                     performance.mark("acquireTokenByCode-end");
