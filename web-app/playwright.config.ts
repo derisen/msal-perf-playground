@@ -16,12 +16,12 @@ const SCENARIOS = {
 const config: PlaywrightTestConfig = {
   reporter: './test/TestReporter.ts',
   webServer: {
-    command: SCENARIOS[process.env.TEST_SCENARIO?.toString() || "S1"],
+    command: "npm run start:single",
     port: 3000,
     timeout: 300000,
   },
   metadata: {
-    name: process.env.TEST_SCENARIO?.toString(),
+    name: "maghmoud",
   },
   testDir: path.join(__dirname, '/test'),
   use: {
