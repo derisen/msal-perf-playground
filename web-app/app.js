@@ -36,7 +36,7 @@ const app = express();
  * familiarize yourself with available options. Visit: https://www.npmjs.com/package/express-session
  */
 app.use(session({
-    secret: "keyboard cat",
+    secret: process.env.AAD_CLIENT_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {

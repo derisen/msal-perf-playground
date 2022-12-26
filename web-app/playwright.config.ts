@@ -14,8 +14,7 @@ const SCENARIOS = {
 };
 
 const config: PlaywrightTestConfig = {
-  reporter: 'list',
-  // reporter: './test/TestReporter.ts',
+  reporter: './test/TestReporter.ts',
   webServer: {
     command: SCENARIOS[process.env.TEST_SCENARIO || "S1"],
     port: 3000,

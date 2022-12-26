@@ -9,7 +9,8 @@ const MsalWrapper = require('../common/MsalWrapper');
 const {
     msalConfig,
     REDIRECT_URI,
-    POST_LOGOUT_REDIRECT_URI
+    POST_LOGOUT_REDIRECT_URI,
+    TENANT_ID,
 } = require('../authConfig');
 
 module.exports = (options) => {
@@ -17,6 +18,7 @@ module.exports = (options) => {
         msalConfig: msalConfig,
         redirectUri: REDIRECT_URI,
         postLogoutRedirectUri: POST_LOGOUT_REDIRECT_URI,
+        tenantId: TENANT_ID,
         instanceMode: options.instanceMode,
         cacheMode: options.cacheMode,
         cacheSize: options.cacheSize,

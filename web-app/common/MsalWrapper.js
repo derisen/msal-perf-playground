@@ -117,8 +117,8 @@ class MsalWrapper {
         if (this.config.metadataCaching) {
             console.log(chalk.green("metadata caching is enabled, fetching metadata from the authority and cloud discovery endpoints"))
             // Get the metadata from the authority and cloud discovery endpoints
-            const cloudDiscoveryMetadata = await this.getCloudDiscoveryMetadata("cbaf2168-de14-4c72-9d88-f5f05366dbef");
-            const authorityMetadata = await this.getAuthorityMetadata("cbaf2168-de14-4c72-9d88-f5f05366dbef");
+            const cloudDiscoveryMetadata = await this.getCloudDiscoveryMetadata(this.config.tenantId);
+            const authorityMetadata = await this.getAuthorityMetadata(this.config.tenantId);
             
             // Store the metadata in the session
             req.session.metadata = {
