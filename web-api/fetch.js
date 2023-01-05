@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-var axios = require('axios');
+const axios = require('axios');
 
 /**
  * Attaches a given access token to a MS Graph API call
@@ -27,4 +27,4 @@ async function fetch(endpoint, accessToken) {
     }
 }
 
-module.exports = fetch;
+module.exports = fetch;  // export the fetch function to be used in other files

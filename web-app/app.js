@@ -19,7 +19,7 @@ var authRouter = require('./routes/auth');
 const yargs = require('yargs');
 
 const options = yargs
-    .usage('Usage: --instanceMode <singe | multi> --cacheMode <session | distributed> --metadataCaching <metadata_caching> --outputPath <output_path>')
+.usage('Usage: --instanceMode <singe | multi> --cacheMode <session | distributed> --cacheSize <1000> --metadataCaching <metadata_caching> --scenarioName <some-test>--outputPath <output_path>')
     .option('instanceMode', { alias: 'im', describe: 'instance mode', type: 'string', demandOption: true })
     .option('cacheMode', { alias: 'cm', describe: 'cache mode', type: 'string', demandOption: false })
     .option('cacheSize', { alias: 'cs', describe: 'cache size', type: 'number', demandOption: false })

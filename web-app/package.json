@@ -4,12 +4,13 @@
   "description": "sample web app for msal-node",
   "scripts": {
     "start": "node ./bin/www",
-    "start:single": "npm start -- --im=single --cm=none --cs=1000 --mc=false --sn=auth-code-single-no-cache --out=./reports/benchmarks.md",
-    "start:single-token-cache-session": "npm start -- --im=single --cm=session --cs=1000 --mc=false --sn=auth-code-single-token-cache-session --out=./reports/benchmarks.md",
-    "start:multi": "npm start -- --im=multi --cm=none --cs=1000 --mc=false --sn=auth-code-multi-no-cache --out=./reports/benchmarks.md",
-    "start:multi-token-cache-session": "npm start -- --im=multi --cm=session --cs=1000 --mc=false --sn=auth-code-multi-token-cache-session --out=./reports/benchmarks.md",
-    "start:multi-token-metadata-cache-session": "npm start -- --im=multi --cm=session --cs=1000 --mc=true --sn=auth-code-multi-token-metadata-cache-session --out=./reports/benchmarks.md",
+    "start:single": "npm start -- --im=single --cm=none --cs=100000 --mc=false --sn=auth-code-single-no-cache --out=./reports/benchmarks.md",
+    "start:single-token-cache-session": "npm start -- --im=single --cm=session --cs=100000 --mc=false --sn=auth-code-single-token-cache-session --out=./reports/benchmarks.md",
+    "start:multi": "npm start -- --im=multi --cm=none --cs=100000 --mc=false --sn=auth-code-multi-no-cache --out=./reports/benchmarks.md",
+    "start:multi-token-cache-session": "npm start -- --im=multi --cm=session --cs=100000 --mc=false --sn=auth-code-multi-token-cache-session --out=./reports/benchmarks.md",
+    "start:multi-token-metadata-cache-session": "npm start -- --im=multi --cm=session --cs=100000 --mc=true --sn=auth-code-multi-token-metadata-cache-session --out=./reports/benchmarks.md",
     "test": "playwright test",
+    "test:all": "cross-env TEST_SCENARIO=S1 playwright test && cross-env TEST_SCENARIO=S2 playwright test && cross-env TEST_SCENARIO=S3 playwright test && cross-env TEST_SCENARIO=S4 playwright test && cross-env TEST_SCENARIO=S5 playwright test",
     "postinstall": "npx playwright install --with-deps chromium"
   },
   "author": "Microsoft",
@@ -24,6 +25,7 @@
     "express-session": "^1.17.3",
     "hbs": "^4.2.0",
     "http-errors": "^2.0.0",
+    "jsonfile": "^6.1.0",
     "morgan": "^1.10.0",
     "yargs": "^17.6.2"
   },
@@ -31,6 +33,7 @@
     "@playwright/test": "^1.29.0",
     "autocannon": "^7.10.0",
     "clinic": "^12.0.0",
+    "cross-env": "^7.0.3",
     "playwright": "^1.29.0"
   }
 }

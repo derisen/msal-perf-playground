@@ -1,0 +1,36 @@
+{
+    "name": "msal-node-on-behalf-of",
+    "version": "1.0.0",
+    "description": "sample web api for msal-node",
+    "scripts": {
+        "start": "node ./bin/www",
+        "start:single": "npm start -- --im=single --cm=none --cs=1000 --mc=false --sn=auth-code-single-no-cache --out=./reports/benchmarks.md",
+        "start:single-token-cache-session": "npm start -- --im=single --cm=session --cs=1000 --mc=false --sn=auth-code-single-token-cache-session --out=./reports/benchmarks.md",
+        "start:multi": "npm start -- --im=multi --cm=none --cs=1000 --mc=false --sn=auth-code-multi-no-cache --out=./reports/benchmarks.md",
+        "start:multi-token-cache-session": "npm start -- --im=multi --cm=session --cs=1000 --mc=false --sn=auth-code-multi-token-cache-session --out=./reports/benchmarks.md",
+        "start:multi-token-metadata-cache-session": "npm start -- --im=multi --cm=session --cs=1000 --mc=true --sn=auth-code-multi-token-metadata-cache-session --out=./reports/benchmarks.md",
+        "test": "node ./test/loadTest.js --c=1 --a=1 --o=./reports/testruns.json"
+    },
+    "author": "Microsoft",
+    "license": "MIT",
+    "dependencies": {
+        "@azure/msal-node": "^1.14.5",
+        "axios": "^1.0.0",
+        "chalk": "^4.1.2",
+        "cors": "^2.8.5",
+        "dotenv": "^16.0.3",
+        "express": "^4.18.1",
+        "express-session": "^1.17.3",
+        "jsonfile": "^6.1.0",
+        "morgan": "^1.10.0",
+        "node-cache": "^5.1.2",
+        "passport": "^0.6.0",
+        "passport-azure-ad": "^4.3.3",
+        "yargs": "^17.6.2"
+    },
+    "devDependencies": {
+        "autocannon": "^7.10.0",
+        "clinic": "^12.0.0",
+        "cross-env": "^7.0.3"
+    }
+}

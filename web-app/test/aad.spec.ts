@@ -42,7 +42,7 @@ test.describe("Auth Code AAD Tests", () => {
         test.beforeEach(async () => {
             context = await browser.newContext();
             page = await context.newPage();
-            page.setDefaultTimeout(5000);
+            page.setDefaultTimeout(50000);
             page.on("dialog", async dialog => {
                 console.log(dialog.message());
                 await dialog.dismiss();

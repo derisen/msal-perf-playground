@@ -115,16 +115,23 @@ class MsalWrapper {
         };
 
         if (this.config.metadataCaching) {
-            console.log(chalk.green("metadata caching is enabled, fetching metadata from the authority and cloud discovery endpoints"))
-            // Get the metadata from the authority and cloud discovery endpoints
-            const cloudDiscoveryMetadata = await this.getCloudDiscoveryMetadata(this.config.tenantId);
-            const authorityMetadata = await this.getAuthorityMetadata(this.config.tenantId);
-            
-            // Store the metadata in the session
-            req.session.metadata = {
-                cloudDiscoveryMetadata: JSON.stringify(cloudDiscoveryMetadata),
-                authorityMetadata: JSON.stringify(authorityMetadata),
-            };
+            try {
+                console.log(chalk.green("metadata caching is enabled, fetching metadata from the authority and cloud discovery endpoints"))
+                // Get the metadata from the authority and cloud discovery endpoints
+
+                const [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all([
+                    this.getCloudDiscoveryMetadata(this.config.tenantId),
+                    this.getAuthorityMetadata(this.config.tenantId)
+                ]);
+    
+                // Store the metadata in the session
+                req.session.metadata = {
+                    cloudDiscoveryMetadata: JSON.stringify(cloudDiscoveryMetadata),
+                    authorityMetadata: JSON.stringify(authorityMetadata),
+                };                
+            } catch (error) {
+                return next(error);
+            }
         }
 
         const msalInstance = this.getMsalInstance(this.config.instanceMode, req.session.metadata);
@@ -137,24 +144,23 @@ class MsalWrapper {
         const msalInstance = this.getMsalInstance(this.config.instanceMode, req.session.metadata);
 
         try {
-            performance.mark("acquireTokenSilent-start");
             if (this.config.cacheMode === "session") {
                 console.log(chalk.green("cacheMode is session, deserializing the cache blob from session store"));
                 // deserialize the cache blob from session store
                 msalInstance.getTokenCache().deserialize(req.session.tokenCache);
             }
+            performance.mark("acquireTokenSilent-start");
             const tokenResponse = await msalInstance.acquireTokenSilent({
                 account: req.session.account,
                 scopes: ["User.Read"],
             });
+            performance.mark("acquireTokenSilent-end");
+            performance.measure("acquireTokenSilent", "acquireTokenSilent-start", "acquireTokenSilent-end");
             if (this.config.cacheMode === "session") {
                 console.log(chalk.green("cacheMode is session, serializing the cache blob to session store"));
                 // deserialize the cache blob from session store
                 req.session.tokenCache = msalInstance.getTokenCache().serialize();
             }
-            performance.mark("acquireTokenSilent-end");
-            performance.measure("acquireTokenSilent", "acquireTokenSilent-start", "acquireTokenSilent-end");
-
             req.session.accessToken = tokenResponse.accessToken;
             req.session.idToken = tokenResponse.idToken;
             req.session.account = tokenResponse.account;
@@ -189,39 +195,37 @@ class MsalWrapper {
     }
 
     async handleRedirect(req, res, next) {
-        if (req.body.state) {
-            const state = JSON.parse(this.cryptoProvider.base64Decode(req.body.state));
+        if (!req.body.state) {
+            return next(new Error('state is missing'));
+        }
+        
+        const state = JSON.parse(this.cryptoProvider.base64Decode(req.body.state));
+        
+        if (state.csrfToken !== req.session.csrfToken) {
+            return next(new Error('csrf token does not match'));
+        }
 
-            // check if csrfToken matches
-            if (state.csrfToken === req.session.csrfToken) {
-                req.session.authCodeRequest.code = req.body.code; // authZ code
-                req.session.authCodeRequest.codeVerifier = req.session.pkceCodes.verifier // PKCE Code Verifier
+        req.session.authCodeRequest.code = req.body.code; // authZ code
+        req.session.authCodeRequest.codeVerifier = req.session.pkceCodes.verifier // PKCE Code Verifier
 
-                try {
-                    const msalInstance = this.getMsalInstance(this.config.instanceMode, req.session.metadata);
-                    performance.mark("acquireTokenByCode-start");
-                    const tokenResponse = await msalInstance.acquireTokenByCode(req.session.authCodeRequest);
-                    if (this.config.cacheMode === "session") {
-                        console.log(chalk.green("cacheMode is session, serializing the cache blob to session store"));
-                        req.session.tokenCache = msalInstance.getTokenCache().serialize();
-                    }
-                    performance.mark("acquireTokenByCode-end");
-                    performance.measure("acquireTokenByCode", "acquireTokenByCode-start", "acquireTokenByCode-end");
-
-                    req.session.accessToken = tokenResponse.accessToken;
-                    req.session.idToken = tokenResponse.idToken;
-                    req.session.account = tokenResponse.account;
-                    req.session.isAuthenticated = true;
-
-                    res.redirect(state.redirectTo);
-                } catch (error) {
-                    next(error);
-                }
-            } else {
-                next(new Error('csrf token does not match'));
+        try {
+            const msalInstance = this.getMsalInstance(this.config.instanceMode, req.session.metadata);
+            performance.mark("acquireTokenByCode-start");
+            const tokenResponse = await msalInstance.acquireTokenByCode(req.session.authCodeRequest);
+            performance.mark("acquireTokenByCode-end");
+            performance.measure("acquireTokenByCode", "acquireTokenByCode-start", "acquireTokenByCode-end");
+            if (this.config.cacheMode === "session") {
+                console.log(chalk.green("cacheMode is session, serializing the cache blob to session store"));
+                req.session.tokenCache = msalInstance.getTokenCache().serialize();
             }
-        } else {
-            next(new Error('state is missing'));
+            req.session.accessToken = tokenResponse.accessToken;
+            req.session.idToken = tokenResponse.idToken;
+            req.session.account = tokenResponse.account;
+            req.session.isAuthenticated = true;
+
+            res.redirect(state.redirectTo);
+        } catch (error) {
+            next(error);
         }
     }
 

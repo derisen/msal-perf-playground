@@ -18,7 +18,6 @@ const config: PlaywrightTestConfig = {
   webServer: {
     command: SCENARIOS[process.env.TEST_SCENARIO || "S1"],
     port: 3000,
-    timeout: 300000,
   },
   metadata: {
     name: process.env.TEST_SCENARIO,
@@ -28,8 +27,6 @@ const config: PlaywrightTestConfig = {
     headless: true,
     trace: 'on-first-retry',
   },
-  timeout: 300000,
-  globalTimeout: 5400000,
   workers: process.env.CI ? 1 : undefined,
 };
 
