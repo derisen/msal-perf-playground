@@ -42,7 +42,6 @@ test.describe("Auth Code AAD Tests", () => {
         test.beforeEach(async () => {
             context = await browser.newContext();
             page = await context.newPage();
-            page.setDefaultTimeout(50000);
             page.on("dialog", async dialog => {
                 console.log(dialog.message());
                 await dialog.dismiss();
@@ -65,17 +64,7 @@ test.describe("Auth Code AAD Tests", () => {
             await page.waitForSelector("#acquireToken");
             await screenshot.takeScreenshot(page, "samplePagePostLogin");
 
-            // first acquireToken call
-            page.click("#acquireToken");
-            await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
-            await screenshot.takeScreenshot(page, "samplePageAcquireTokenCallGraph");
-            await expect(page.locator(`text=Microsoft Graph API`).first()).toBeVisible();
-            await expect(page.locator(`text=${username}`).first()).toBeVisible();
-
-            await page.waitForSelector("#goBack");
-            page.click("#goBack");
-
-            // second acquireToken call
+            // acquireToken
             page.click("#acquireToken");
             await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
             await screenshot.takeScreenshot(page, "samplePageAcquireTokenCallGraph");

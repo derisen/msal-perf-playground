@@ -4,7 +4,7 @@
  */
 
 const express = require('express');
-const MsalWrapper = require('../common/MsalWrapper');
+const MsalWebApiWrapper = require('../auth/MsalWebApiWrapper');
 
 const {
     msalConfig,
@@ -12,7 +12,7 @@ const {
 } = require('../authConfig');
 
 module.exports = (options) => {
-    const msalWrapper = new MsalWrapper({
+    const msalWrapper = new MsalWebApiWrapper({
         msalConfig: msalConfig,
         tenantId: TENANT_ID,
         instanceMode: options.instanceMode,

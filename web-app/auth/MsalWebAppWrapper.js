@@ -4,13 +4,14 @@ const chalk = require('chalk');
 const msal = require('@azure/msal-node');
 const axios = require('axios');
 
-const generateCache = require('../utils/generateCache');
+const generateCache = require('../../common/generateCache');
 
-class MsalWrapper {
+class MsalWebAppWrapper {
     config;
     msalInstance;
     cryptoProvider;
     perfObserver;
+    cacheClient;
 
     constructor(config) {
         this.config = config;
@@ -21,6 +22,10 @@ class MsalWrapper {
             this.prepopulateCache(this.config.cacheSize);
         }
 
+        if (this.config.cacheClient) {
+            this.cacheClient = this.config.cacheClient;
+        }
+
         this.initializePerfObserver();
     }
 
@@ -28,17 +33,17 @@ class MsalWrapper {
         // generate a dummy cache and prepopulate the cache with it
         const dummyCache = generateCache(size);
         const stringifiedCache = JSON.stringify(dummyCache);
-
-        // or read from a file
-        //const cacheFile = fs.readFileSync('./data/cache.json', 'utf8');
-
         this.msalInstance.getTokenCache().deserialize(stringifiedCache);
+
+        // // or read from an existing cache file
+        // const cacheFile = fs.readFileSync('./data/cache.json', 'utf8');
+        // this.msalInstance.getTokenCache().deserialize(cacheFile);
     }
 
     initializePerfObserver() {
         this.perfObserver = new PerformanceObserver((items) => {
             items.getEntries().forEach((entry) => {
-                const data = `| ${this.config.scenarioName} | ${entry.name} | ${entry.duration} |\n`;
+                const data = `${this.config.scenarioName} ${entry.name} ${entry.startTime} ${entry.duration}\n`;
                 fs.appendFile(this.config.outputPath, data, function (err) {
                     if (err) throw err;
                 });
@@ -53,15 +58,18 @@ class MsalWrapper {
      * @param {string} instanceMode 
      * @returns 
      */
-    getMsalInstance(instanceMode, metadata) {
+    getMsalInstance(instanceMode, metadata, partitionManager) {
         switch (instanceMode) {
             case "single":
                 console.log(chalk.green("instanceMode is single, returning the same instance"));
                 return this.msalInstance;
             case "multi":
+                let msalConfig = this.config.msalConfig;
+
                 if (this.config.metadataCaching && metadata) {
                     console.log(chalk.green("instanceMode is multi with metadata caching enabled, returning a new instance"));
-                    return new msal.ConfidentialClientApplication({
+
+                    msalConfig = {
                         auth: {
                             ...this.config.msalConfig.auth,
                             cloudDiscoveryMetadata: metadata.cloudDiscoveryMetadata,
@@ -70,10 +78,29 @@ class MsalWrapper {
                         system: {
                             ...this.config.msalConfig.system,
                         }
-                    });
+                    }
                 }
+
+                if (this.config.cacheMode === 'distributed' && partitionManager) {
+                    console.log(chalk.green("instanceMode is multi with distributed cache enabled, returning a new instance"));
+
+                    msalConfig = {
+                        auth: {
+                            ...this.config.msalConfig.auth,
+                            cloudDiscoveryMetadata: metadata.cloudDiscoveryMetadata,
+                            authorityMetadata: metadata.authorityMetadata,
+                        },
+                        cache: {
+                            cachePlugin: new msal.DistributedCachePlugin(this.cacheClient, partitionManager)
+                        },
+                        system: {
+                            ...this.config.msalConfig.system,
+                        }
+                    }
+                }
+
                 console.log(chalk.green("instanceMode is multi, returning a new instance"));
-                return new msal.ConfidentialClientApplication(this.config.msalConfig);
+                return new msal.ConfidentialClientApplication(msalConfig);
             default:
                 break;
         }
@@ -102,7 +129,7 @@ class MsalWrapper {
              * By default, MSAL Node will add OIDC scopes to the auth code url request. For more information, visit:
              * https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
              */
-            scopes: [],
+            scopes: ["User.Read"],
         };
 
         const authCodeRequestParams = {
@@ -111,7 +138,7 @@ class MsalWrapper {
              * By default, MSAL Node will add OIDC scopes to the auth code request. For more information, visit:
              * https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
              */
-            scopes: [],
+            scopes: ["User.Read"],
         };
 
         if (this.config.metadataCaching) {
@@ -134,14 +161,14 @@ class MsalWrapper {
             }
         }
 
-        const msalInstance = this.getMsalInstance(this.config.instanceMode, req.session.metadata);
+        const msalInstance = this.getMsalInstance(this.config.instanceMode, req.session.metadata, req.partitionManager);
 
         // trigger the first leg of auth code flow
         return this.redirectToAuthCodeUrl(req, res, next, authCodeUrlRequestParams, authCodeRequestParams, msalInstance);
     };
 
     async acquireToken(req, res, next) {
-        const msalInstance = this.getMsalInstance(this.config.instanceMode, req.session.metadata);
+        const msalInstance = this.getMsalInstance(this.config.instanceMode, req.session.metadata, req.partitionManager);
 
         try {
             if (this.config.cacheMode === "session") {
@@ -209,7 +236,7 @@ class MsalWrapper {
         req.session.authCodeRequest.codeVerifier = req.session.pkceCodes.verifier // PKCE Code Verifier
 
         try {
-            const msalInstance = this.getMsalInstance(this.config.instanceMode, req.session.metadata);
+            const msalInstance = this.getMsalInstance(this.config.instanceMode, req.session.metadata, req.partitionManager);
             performance.mark("acquireTokenByCode-start");
             const tokenResponse = await msalInstance.acquireTokenByCode(req.session.authCodeRequest);
             performance.mark("acquireTokenByCode-end");
@@ -329,4 +356,4 @@ class MsalWrapper {
     }
 }
 
-module.exports = MsalWrapper;  // export the class
+module.exports = MsalWebAppWrapper;  // export the class

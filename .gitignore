@@ -3,3 +3,7 @@ node_modules/
 .env
 screenshots/
 cache.json
+benchmarks.html
+*/reports/measurements.txt
+*/reports/testruns.txt
+package-lock.json

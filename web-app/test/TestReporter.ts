@@ -14,9 +14,9 @@ class TestReporter implements Reporter {
     }
 
     onTestEnd(test, result) {
-        const data = `| ${this.testName} | ${result.status} | ${result.duration} |\n`;
+        const data = `${this.testName} ${result.status} ${result.duration}\n`;
 
-        fs.appendFile("./reports/testruns.md", data, function (err) {
+        fs.appendFile("./reports/testruns.txt", data, function (err) {
             if (err) throw err;
         });
     }

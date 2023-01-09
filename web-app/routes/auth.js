@@ -4,7 +4,7 @@
  */
 
 const express = require('express');
-const MsalWrapper = require('../common/MsalWrapper');
+const MsalWebAppWrapper = require('../auth/MsalWebAppWrapper');
 
 const {
     msalConfig,
@@ -14,7 +14,7 @@ const {
 } = require('../authConfig');
 
 module.exports = (options) => {
-    const msalWrapper = new MsalWrapper({
+    const msalWrapper = new MsalWebAppWrapper({
         msalConfig: msalConfig,
         redirectUri: REDIRECT_URI,
         postLogoutRedirectUri: POST_LOGOUT_REDIRECT_URI,
@@ -24,7 +24,8 @@ module.exports = (options) => {
         cacheSize: options.cacheSize,
         metadataCaching: options.metadataCaching,
         outputPath: options.outputPath,
-        scenarioName: options.scenarioName
+        scenarioName: options.scenarioName,
+        cacheClient: options.cacheClient,
     });
 
     const router = express.Router();

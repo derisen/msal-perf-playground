@@ -12,7 +12,7 @@ const msalConfig = {
         clientSecret: process.env.AAD_CLIENT_SECRET,
     },
     // cache: {
-    //     cachePlugin: require('./utils/cachePlugin')('cache.json')
+    //     cachePlugin: require('../../common/cachePlugin')('cache.json')
     // },
     system: {
         loggerOptions: {

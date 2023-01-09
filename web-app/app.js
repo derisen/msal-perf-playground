@@ -12,6 +12,8 @@ var createError = require('http-errors');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
+const NodeCache = require('node-cache');
+
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var authRouter = require('./routes/auth');
@@ -19,14 +21,25 @@ var authRouter = require('./routes/auth');
 const yargs = require('yargs');
 
 const options = yargs
-.usage('Usage: --instanceMode <singe | multi> --cacheMode <session | distributed> --cacheSize <1000> --metadataCaching <metadata_caching> --scenarioName <some-test>--outputPath <output_path>')
+    .usage('Usage: --instanceMode <singe | multi> --cacheMode <session | distributed> --cacheSize <1000> --metadataCaching <metadata_caching> --scenarioName <some-test>--outputPath <output_path>')
     .option('instanceMode', { alias: 'im', describe: 'instance mode', type: 'string', demandOption: true })
     .option('cacheMode', { alias: 'cm', describe: 'cache mode', type: 'string', demandOption: false })
     .option('cacheSize', { alias: 'cs', describe: 'cache size', type: 'number', demandOption: false })
     .option('metadataCaching', { alias: 'mc', describe: 'whether to cache metadata', type: 'boolean', demandOption: true })
     .option('scenarioName', { alias: 'sn', describe: 'describe current scenario', type: 'string', demandOption: true })
-    .option('outputPath', { alias: 'out', describe: 'path to measurement output', type: 'string', demandOption: true })
+    .option('outputPath', { alias: 'out', describe: 'path to benchmark output', type: 'string', demandOption: true })
     .argv;
+
+let cacheClient = null;
+
+if (options.cacheMode === 'distributed') {
+    cacheClient = new NodeCache({
+        stdTTL: 3600, // in seconds
+        checkperiod: 60 * 100,
+        deleteOnExpire: true,
+        enableLegacyCallbacks: true,
+    });
+}
 
 // initialize express
 const app = express();
@@ -36,6 +49,7 @@ const app = express();
  * familiarize yourself with available options. Visit: https://www.npmjs.com/package/express-session
  */
 app.use(session({
+    store: new RedisStore({ client: redisClient }),
     secret: process.env.AAD_CLIENT_SECRET,
     resave: false,
     saveUninitialized: false,
@@ -54,6 +68,18 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+if (options.cacheMode === 'distributed') {
+    const cacheClientWrapper = require('./utils/cacheClientWrapper')(cacheClient);
+    const partitionManager = require('./utils/partitionManager');
+
+    function initializePartitionManager(req, _, next) {
+        req.partitionManager = partitionManager(cacheClientWrapper, req.session.id);
+        next();
+    }
+
+    app.use(initializePartitionManager);
+}
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/auth', authRouter({
@@ -62,7 +88,8 @@ app.use('/auth', authRouter({
     cacheSize: options.cacheSize,
     metadataCaching: options.metadataCaching,
     outputPath: options.outputPath,
-    scenarioName: options.scenarioName
+    scenarioName: options.scenarioName,
+    cacheClient: cacheClient
 }));
 
 // catch 404 and forward to error handler

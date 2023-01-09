@@ -1,80 +1,66 @@
 require('dotenv').config();
 
 const msal = require('@azure/msal-node');
-const autocannon = require('autocannon');
 const yargs = require('yargs');
-const jsonfile = require('jsonfile');
+const autocannon = require('autocannon');
+const fs = require('fs');
 
-const scenarios = [
-    {
+const scenarios = {
+    s1: {
         instanceMode: 'single',
         cacheMode: 'none',
         cacheSize: 10000,
         metadataCaching: false,
         scenarioName: 'obo-single-no-cache',
-        outputPath: './reports/results.txt'
+        outputPath: './reports/measurements.txt'
     },
-    {
+    s2: {
         instanceMode: 'single',
         cacheMode: 'session',
         cacheSize: 10000,
         metadataCaching: false,
-        scenarioName: 'obo-single-session-cache',
-        outputPath: './reports/results.txt'
+        scenarioName: 'obo-single-token-cache-session',
+        outputPath: './reports/measurements.txt'
     },
-    {
-        instanceMode: 'multi',
-        cacheMode: 'none',
-        cacheSize: 10000,
-        metadataCaching: false,
-        scenarioName: 'obo-multi-no-cache',
-        outputPath: './reports/results.txt'
-    },
-    {
+    s3: {
         instanceMode: 'multi',
         cacheMode: 'session',
         cacheSize: 10000,
         metadataCaching: false,
-        scenarioName: 'obo-multi-session-cache',
-        outputPath: './reports/results.txt'
+        scenarioName: 'obo-multi-token-cache-session',
+        outputPath: './reports/measurements.txt'
     },
-    {
+    s4: {
         instanceMode: 'multi',
         cacheMode: 'session',
         cacheSize: 10000,
         metadataCaching: true,
-        scenarioName: 'obo-multi-session-cache-metadata',
-        outputPath: './reports/results.txt'
+        scenarioName: 'obo-multi-token-metadata-cache-session',
+        outputPath: './reports/measurements.txt'
     }
-];
+};
 
 async function main() {
     const options = yargs
         .usage('Usage: --connections=10 --amount=10 --output=results.json')
-        .option('connections', { alias: 'c', describe: 'number of concurrent connections', type: 'number', demandOption: true })
-        .option('amount', { alias: 'a', describe: 'total amount of requests', type: 'number', demandOption: true })
-        .option('output', { alias: 'o', describe: 'path to output file', type: 'string', demandOption: true })
+        .option('connections', { alias: 'c', describe: 'number of concurrent connections', type: 'number', demandOption: false })
+        .option('amount', { alias: 'a', describe: 'total amount of requests', type: 'number', demandOption: false })
+        .option('output', { alias: 'o', describe: 'path to output file', type: 'string', demandOption: false })
         .option('scenario', { alias: 's', describe: 'scenario to run', type: 'string', demandOption: false })
         .argv;
 
     const accessToken = await getToken();
 
-    const results = [];
+    const server = await startServer(scenarios[options.scenario || 's1']);
 
-    for (const scenario of scenarios) {
-        const server = await startServer(scenario);
+    await makeRequest({
+        title: scenarios[options.scenario || 's1'].scenarioName,
+        connections: options.connections || 10,
+        amount: options.amount || 10,
+        output: options.output || './reports/testruns.txt',
+    }, accessToken);
 
-        const result = await makeRequest({
-            connections: options.connections,
-            amount: options.amount,
-            output: options.output,
-        }, accessToken);
-
-        results.push(result);
-        await server.close();
-    }
-
-    jsonfile.writeFileSync(`${options.output}`, { testruns: results }, { flag: 'w' });
+    await stopServer(server);
 
     process.exit(0);
 };
@@ -88,6 +74,15 @@ async function startServer(scenario) {
         const server = app.listen(5000, () => {
             console.log(`Server listening on port ${5000}`);
             resolve(server);
+        });
+    });
+};
+
+async function stopServer(server) {
+    return new Promise((resolve, reject) => {
+        server.close(() => {
+            console.log('Server closed');
+            resolve();
         });
     });
 };
@@ -116,9 +111,9 @@ async function getToken() {
     }
 };
 
-// async/await
 async function makeRequest(options = {}, accessToken = "") {
     const result = await autocannon({
+        title: options.title,
         url: 'http://localhost:5000/api/profile',
         connections: options.connections, //default
         amount: options.amount, // default
@@ -127,5 +122,16 @@ async function makeRequest(options = {}, accessToken = "") {
         },
     });
 
-    return result;
+    // console.log(result);
+
+    // console.log(autocannon.printResult(result, {
+    //     renderResultsTable: true,
+    //     renderLatencyTable: true,
+    // }));
+
+    const data = `${result.title} ${(new Date(result.finish) - new Date(result.start)) / 1000} ${result.connections} ${result.latency.average} ${result.requests.average} ${result.throughput.average}\n`;
+
+    fs.appendFileSync(options.output, data, function (err) {
+        if (err) throw err;
+    });
 };

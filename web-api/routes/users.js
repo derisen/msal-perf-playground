@@ -1,5 +1,5 @@
 const express = require('express');
-const fetch = require('../fetch');
+const fetch = require('../../common/fetchHelper');
 
 const { GRAPH_ME_ENDPOINT } = require('../authConfig');
 

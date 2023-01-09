@@ -5,9 +5,9 @@ const msal = require('@azure/msal-node');
 const axios = require('axios');
 const NodeCache = require('node-cache');
 
-const generateCache = require('../utils/generateCache');
+const generateCache = require('../../common/generateCache');
 
-class MsalWrapper {
+class MsalWebApiWrapper {
     config;
     msalInstance;
     cryptoProvider;
@@ -40,17 +40,17 @@ class MsalWrapper {
         // generate a dummy cache and prepopulate the cache with it
         const dummyCache = generateCache(size);
         const stringifiedCache = JSON.stringify(dummyCache);
-
-        // or read from a file
-        //const cacheFile = fs.readFileSync('./data/cache.json', 'utf8');
-
         this.msalInstance.getTokenCache().deserialize(stringifiedCache);
+
+        // // or read from an existing cache file
+        // const cacheFile = fs.readFileSync('./data/cache.json', 'utf8');
+        // this.msalInstance.getTokenCache().deserialize(cacheFile);
     }
 
     initializePerfObserver() {
         this.perfObserver = new PerformanceObserver((items) => {
             items.getEntries().forEach((entry) => {
-                const data = `${this.config.scenarioName} ${entry.name} ${entry.duration} ${entry.startTime}\n`;
+                const data = `${this.config.scenarioName} ${entry.name} ${entry.startTime} ${entry.duration}\n`;
                 fs.appendFile(this.config.outputPath, data, function (err) {
                     if (err) throw err;
                 });
@@ -187,4 +187,4 @@ class MsalWrapper {
     }
 }
 
-module.exports = MsalWrapper;
+module.exports = MsalWebApiWrapper;

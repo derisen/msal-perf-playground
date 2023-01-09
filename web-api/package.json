@@ -4,12 +4,14 @@
     "description": "sample web api for msal-node",
     "scripts": {
         "start": "node ./bin/www",
-        "start:single": "npm start -- --im=single --cm=none --cs=1000 --mc=false --sn=auth-code-single-no-cache --out=./reports/benchmarks.md",
-        "start:single-token-cache-session": "npm start -- --im=single --cm=session --cs=1000 --mc=false --sn=auth-code-single-token-cache-session --out=./reports/benchmarks.md",
-        "start:multi": "npm start -- --im=multi --cm=none --cs=1000 --mc=false --sn=auth-code-multi-no-cache --out=./reports/benchmarks.md",
-        "start:multi-token-cache-session": "npm start -- --im=multi --cm=session --cs=1000 --mc=false --sn=auth-code-multi-token-cache-session --out=./reports/benchmarks.md",
-        "start:multi-token-metadata-cache-session": "npm start -- --im=multi --cm=session --cs=1000 --mc=true --sn=auth-code-multi-token-metadata-cache-session --out=./reports/benchmarks.md",
-        "test": "node ./test/loadTest.js --c=1 --a=1 --o=./reports/testruns.json"
+        "start:single": "npm start -- --im=single --cm=none --cs=1000 --mc=false --sn=auth-code-single-no-cache --out=./reports/measurements.txt",
+        "start:single-token-cache-session": "npm start -- --im=single --cm=session --cs=1000 --mc=false --sn=auth-code-single-token-cache-session --out=./reports/measurements.txt",
+        "start:multi-token-cache-session": "npm start -- --im=multi --cm=session --cs=1000 --mc=false --sn=auth-code-multi-token-cache-session --out=./reports/measurements.txt",
+        "start:multi-token-metadata-cache-session": "npm start -- --im=multi --cm=session --cs=1000 --mc=true --sn=auth-code-multi-token-metadata-cache-session --out=./reports/measurements.txt",
+        "test": "node ./test/loadTest.js --c=10 --a=100 --s=s4 --o=./reports/testruns.txt",
+        "test:all": "node ./test/loadTest.js --c=1 --a=1 --s=s1 --o=./reports/testruns.txt && node ./test/loadTest.js --c=1 --a=1 --s=s2 --o=./reports/testruns.txt && node ./test/loadTest.js --c=1 --a=1 --s=s3 --o=./reports/testruns.txt && node ./test/loadTest.js --c=1 --a=1 --s=s4 --o=./reports/testruns.txt",
+        "posttest": "node ../common/generateReport.js --t=webapi --m=../web-api/reports/measurements.txt --r=../web-api/reports/testruns.txt",
+        "posttest:all": "node ../common/generateReport.js --t=webapi --m=../web-api/reports/measurements.txt --r=../web-api/reports/testruns.txt"
     },
     "author": "Microsoft",
     "license": "MIT",
@@ -21,7 +23,6 @@
         "dotenv": "^16.0.3",
         "express": "^4.18.1",
         "express-session": "^1.17.3",
-        "jsonfile": "^6.1.0",
         "morgan": "^1.10.0",
         "node-cache": "^5.1.2",
         "passport": "^0.6.0",

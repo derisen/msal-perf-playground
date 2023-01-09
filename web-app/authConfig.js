@@ -23,7 +23,7 @@ const msalConfig = {
         clientSecret: process.env.AAD_CLIENT_SECRET // Client secret generated from the app registration in Azure portal
     },
     // cache: {
-    //     cachePlugin: require('./utils/cachePlugin')('cache.json')
+    //     cachePlugin: require('../../common/cachePlugin')('cache.json')
     // },
     system: {
         loggerOptions: {
@@ -47,7 +47,7 @@ const msalConfig = {
                 }
             },
             piiLoggingEnabled: true,
-            logLevel: msal.LogLevel.Trace,
+            logLevel: msal.LogLevel.Verbose,
         }
     }
 }
