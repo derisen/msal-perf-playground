@@ -37,7 +37,7 @@ You'll also need to [register an Azure AD application](https://learn.microsoft.c
 
 ## additional remarks
 
-You can use [Clinic.js]() to do performance profiling for the samples in this repo. Read more on how to interpret Clinic.js results [here]().
+You can use [Clinic.js](https://clinicjs.org/) to do performance profiling for the samples in this repo. Read more on how to interpret Clinic.js results [here]().
 
 ## see also:
 

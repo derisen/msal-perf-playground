@@ -8,8 +8,7 @@ function partitionManager(cacheClient, sessionId) {
         getKey: async () => {
             const sessionData = await cacheClient.get(`sess:${sessionId}`);
             const parsedSessionData = JSON.parse(sessionData); // parse the session data
-
-            return parsedSessionData.account.homeAccountId;
+            return parsedSessionData.account ? parsedSessionData.account.homeAccountId : "";
         },
         extractKey: async (accountEntity) => {
             if (accountEntity.hasOwnProperty("homeAccountId")) {

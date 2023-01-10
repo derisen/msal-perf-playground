@@ -5,18 +5,18 @@
 
 require('dotenv').config();
 
-var path = require('path');
-var express = require('express');
-var session = require('express-session');
-var createError = require('http-errors');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const path = require('path');
+const express = require('express');
+const redis = require('redis');
+const session = require('express-session');
+const RedisStore = require('connect-redis')(session); // persist session in redis
+const createError = require('http-errors');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
 
-const NodeCache = require('node-cache');
-
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-var authRouter = require('./routes/auth');
+const indexRouter = require('./routes/index');
+const usersRouter = require('./routes/users');
+const authRouter = require('./routes/auth');
 
 const yargs = require('yargs');
 
@@ -33,12 +33,8 @@ const options = yargs
 let cacheClient = null;
 
 if (options.cacheMode === 'distributed') {
-    cacheClient = new NodeCache({
-        stdTTL: 3600, // in seconds
-        checkperiod: 60 * 100,
-        deleteOnExpire: true,
-        enableLegacyCallbacks: true,
-    });
+    cacheClient = redis.createClient();
+    cacheClient.on('error', console.error);
 }
 
 // initialize express
@@ -49,7 +45,7 @@ const app = express();
  * familiarize yourself with available options. Visit: https://www.npmjs.com/package/express-session
  */
 app.use(session({
-    store: new RedisStore({ client: redisClient }),
+    store: options.cacheMode === 'distributed' ? new RedisStore({ client: cacheClient }) : undefined,
     secret: process.env.AAD_CLIENT_SECRET,
     resave: false,
     saveUninitialized: false,

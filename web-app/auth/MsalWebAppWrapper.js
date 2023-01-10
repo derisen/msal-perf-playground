@@ -68,34 +68,14 @@ class MsalWebAppWrapper {
 
                 if (this.config.metadataCaching && metadata) {
                     console.log(chalk.green("instanceMode is multi with metadata caching enabled, returning a new instance"));
-
-                    msalConfig = {
-                        auth: {
-                            ...this.config.msalConfig.auth,
-                            cloudDiscoveryMetadata: metadata.cloudDiscoveryMetadata,
-                            authorityMetadata: metadata.authorityMetadata,
-                        },
-                        system: {
-                            ...this.config.msalConfig.system,
-                        }
-                    }
+                    msalConfig.auth.cloudDiscoveryMetadata = metadata.cloudDiscoveryMetadata;
+                    msalConfig.auth.authorityMetadata = metadata.authorityMetadata;
                 }
 
                 if (this.config.cacheMode === 'distributed' && partitionManager) {
                     console.log(chalk.green("instanceMode is multi with distributed cache enabled, returning a new instance"));
-
-                    msalConfig = {
-                        auth: {
-                            ...this.config.msalConfig.auth,
-                            cloudDiscoveryMetadata: metadata.cloudDiscoveryMetadata,
-                            authorityMetadata: metadata.authorityMetadata,
-                        },
-                        cache: {
-                            cachePlugin: new msal.DistributedCachePlugin(this.cacheClient, partitionManager)
-                        },
-                        system: {
-                            ...this.config.msalConfig.system,
-                        }
+                    msalConfig.cache = {
+                        cachePlugin: new msal.DistributedCachePlugin(this.cacheClient, partitionManager)
                     }
                 }
 
@@ -176,6 +156,12 @@ class MsalWebAppWrapper {
                 // deserialize the cache blob from session store
                 msalInstance.getTokenCache().deserialize(req.session.tokenCache);
             }
+            
+            if (this.config.cacheMode === "distributed") {
+                // FIXME: this doesn't trigger the cache plugin, since at this point it was never triggered
+                // this is because unlike the RedisTestApp, we don't have a separate sign-in stage (assuming)
+                await msalInstance.getTokenCache().getAccountByHomeId(req.session.account.homeAccountId);
+            }
             performance.mark("acquireTokenSilent-start");
             const tokenResponse = await msalInstance.acquireTokenSilent({
                 account: req.session.account,
@@ -241,6 +227,7 @@ class MsalWebAppWrapper {
             const tokenResponse = await msalInstance.acquireTokenByCode(req.session.authCodeRequest);
             performance.mark("acquireTokenByCode-end");
             performance.measure("acquireTokenByCode", "acquireTokenByCode-start", "acquireTokenByCode-end");
+            console.log(chalk.green(`is token response from cache?: ${tokenResponse.fromCache}`));
             if (this.config.cacheMode === "session") {
                 console.log(chalk.green("cacheMode is session, serializing the cache blob to session store"));
                 req.session.tokenCache = msalInstance.getTokenCache().serialize();
