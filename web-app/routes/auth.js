@@ -24,8 +24,7 @@ module.exports = (options) => {
         cacheSize: options.cacheSize,
         metadataCaching: options.metadataCaching,
         outputPath: options.outputPath,
-        scenarioName: options.scenarioName,
-        cacheClient: options.cacheClient,
+        scenarioName: options.scenarioName
     });
 
     const router = express.Router();

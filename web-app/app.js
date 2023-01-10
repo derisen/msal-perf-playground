@@ -12,8 +12,6 @@ var createError = require('http-errors');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
-const NodeCache = require('node-cache');
-
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var authRouter = require('./routes/auth');
@@ -30,17 +28,6 @@ const options = yargs
     .option('outputPath', { alias: 'out', describe: 'path to benchmark output', type: 'string', demandOption: true })
     .argv;
 
-let cacheClient = null;
-
-if (options.cacheMode === 'distributed') {
-    cacheClient = new NodeCache({
-        stdTTL: 3600, // in seconds
-        checkperiod: 60 * 100,
-        deleteOnExpire: true,
-        enableLegacyCallbacks: true,
-    });
-}
-
 // initialize express
 const app = express();
 
@@ -49,7 +36,6 @@ const app = express();
  * familiarize yourself with available options. Visit: https://www.npmjs.com/package/express-session
  */
 app.use(session({
-    store: new RedisStore({ client: redisClient }),
     secret: process.env.AAD_CLIENT_SECRET,
     resave: false,
     saveUninitialized: false,
@@ -88,8 +74,7 @@ app.use('/auth', authRouter({
     cacheSize: options.cacheSize,
     metadataCaching: options.metadataCaching,
     outputPath: options.outputPath,
-    scenarioName: options.scenarioName,
-    cacheClient: cacheClient
+    scenarioName: options.scenarioName
 }));
 
 // catch 404 and forward to error handler

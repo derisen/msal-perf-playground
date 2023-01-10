@@ -11,7 +11,6 @@ class MsalWebAppWrapper {
     msalInstance;
     cryptoProvider;
     perfObserver;
-    cacheClient;
 
     constructor(config) {
         this.config = config;
@@ -20,10 +19,6 @@ class MsalWebAppWrapper {
 
         if (this.config.cacheSize) {
             this.prepopulateCache(this.config.cacheSize);
-        }
-
-        if (this.config.cacheClient) {
-            this.cacheClient = this.config.cacheClient;
         }
 
         this.initializePerfObserver();
@@ -67,36 +62,10 @@ class MsalWebAppWrapper {
                 let msalConfig = this.config.msalConfig;
 
                 if (this.config.metadataCaching && metadata) {
-                    console.log(chalk.green("instanceMode is multi with metadata caching enabled, returning a new instance"));
+                    console.log(chalk.green("metadata caching enabled, adding to config"));
 
-                    msalConfig = {
-                        auth: {
-                            ...this.config.msalConfig.auth,
-                            cloudDiscoveryMetadata: metadata.cloudDiscoveryMetadata,
-                            authorityMetadata: metadata.authorityMetadata,
-                        },
-                        system: {
-                            ...this.config.msalConfig.system,
-                        }
-                    }
-                }
-
-                if (this.config.cacheMode === 'distributed' && partitionManager) {
-                    console.log(chalk.green("instanceMode is multi with distributed cache enabled, returning a new instance"));
-
-                    msalConfig = {
-                        auth: {
-                            ...this.config.msalConfig.auth,
-                            cloudDiscoveryMetadata: metadata.cloudDiscoveryMetadata,
-                            authorityMetadata: metadata.authorityMetadata,
-                        },
-                        cache: {
-                            cachePlugin: new msal.DistributedCachePlugin(this.cacheClient, partitionManager)
-                        },
-                        system: {
-                            ...this.config.msalConfig.system,
-                        }
-                    }
+                    msalConfig.auth.cloudDiscoveryMetadata = metadata.cloudDiscoveryMetadata;
+                    msalConfig.auth.authorityMetadata = metadata.authorityMetadata;
                 }
 
                 console.log(chalk.green("instanceMode is multi, returning a new instance"));

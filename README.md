@@ -17,7 +17,7 @@ Clone the repository. Then locate the cloned folder in your terminal and run:
     npm install
 ```
 
-You'll also need to [register an Azure AD application](https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app) for each sample, and create a test user account in the tenant that the apps are registered at. To do so, you can run the provided [Configure.ps1]() PowerShell script, which will register the apps, create a test user and update the configuration files:
+You'll also need to [register an Azure AD application](https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app) for each sample, and create a test user account in the tenant that the apps are registered at. To do so, you can run the provided [Configure.ps1](./scripts/Configure.ps1) PowerShell script, which will register the apps, create a test user and update the configuration files:
 
 > :warning: Make sure you have PowerShell v7 installed on your system, or get it from [here](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.3)
 
@@ -27,20 +27,33 @@ You'll also need to [register an Azure AD application](https://learn.microsoft.c
 
 ## running tests
 
-```console
+### web app
 
+To run tests against the web app project, type:
+
+```console
+    cd web-app
+    npm run test:all
 ```
 
-```console
+This will run all tests defined in the [playwright.config.ts](./web-app/playwright.config.ts). Afterwards, the generated report will open in your system's default browser. If you like, you can run tests individually, or change the default parameters like instance mode, cache size and etc. See [package.json](./web-app/package.json) for more.
 
+### web api
+
+To run tests against the web app project, type:
+
+```console
+    cd web-api
+    npm run test:all
 ```
 
-## additional remarks
+This will run all tests defined in the [loadTest.js](./web-api/test/loadTest.js). Afterwards, the generated report will open in your system's default browser. If you like, you can run tests individually, or change the default parameters like instance mode, cache size and etc. See [loadTest.js](./web-api/test/loadTest.js) for more.
 
-You can use [Clinic.js]() to do performance profiling for the samples in this repo. Read more on how to interpret Clinic.js results [here]().
+## remarks
+
+You can use [Clinic.js](https://clinicjs.org/) to do performance profiling for the samples in this repo. Read more on how to interpret Clinic.js results [here](https://clinicjs.org/documentation/doctor/04-reading-a-profile/).
 
 ## see also:
 
 * [Playwright](https://playwright.dev/)
-* [Clinic.js](https://clinicjs.org/)
 * [autocannon](https://github.com/mcollina/autocannon)

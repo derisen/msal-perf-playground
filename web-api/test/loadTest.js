@@ -9,7 +9,7 @@ const scenarios = {
     s1: {
         instanceMode: 'single',
         cacheMode: 'none',
-        cacheSize: 10000,
+        cacheSize: 30000,
         metadataCaching: false,
         scenarioName: 'obo-single-no-cache',
         outputPath: './reports/measurements.txt'
@@ -17,7 +17,7 @@ const scenarios = {
     s2: {
         instanceMode: 'single',
         cacheMode: 'session',
-        cacheSize: 10000,
+        cacheSize: 30000,
         metadataCaching: false,
         scenarioName: 'obo-single-token-cache-session',
         outputPath: './reports/measurements.txt'
@@ -25,7 +25,7 @@ const scenarios = {
     s3: {
         instanceMode: 'multi',
         cacheMode: 'session',
-        cacheSize: 10000,
+        cacheSize: 30000,
         metadataCaching: false,
         scenarioName: 'obo-multi-token-cache-session',
         outputPath: './reports/measurements.txt'
@@ -33,7 +33,7 @@ const scenarios = {
     s4: {
         instanceMode: 'multi',
         cacheMode: 'session',
-        cacheSize: 10000,
+        cacheSize: 30000,
         metadataCaching: true,
         scenarioName: 'obo-multi-token-metadata-cache-session',
         outputPath: './reports/measurements.txt'
@@ -56,7 +56,7 @@ async function main() {
     await makeRequest({
         title: scenarios[options.scenario || 's1'].scenarioName,
         connections: options.connections || 10,
-        amount: options.amount || 10,
+        amount: options.amount || 100,
         output: options.output || './reports/testruns.txt',
     }, accessToken);
 
