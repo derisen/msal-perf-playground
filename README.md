@@ -21,9 +21,12 @@ You'll also need to [register an Azure AD application](https://learn.microsoft.c
 
 > :warning: Make sure you have PowerShell v7 installed on your system, or get it from [here](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.3)
 
-```console
-    
+```powershell
+    cd scripts
+    .\Configure.ps1 -TenantId "your-test-tenant-id"
 ```
+
+Run [Cleanup.ps1](./scripts/Cleanup.ps1) when you would like to clear resources after testing.
 
 ## running tests
 

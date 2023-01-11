@@ -1,0 +1,107 @@
+{
+    "Sample": {
+        "Author": "derisen",
+        "Title": "msal-node cca performance playground",
+        "Level": 400,
+        "Client": "Express web app",
+        "Service": "Express web API",
+        "RepositoryUrl": "perf-playground",
+        "Endpoint": "AAD v2.0",
+        "Languages": ["javascript", "nodejs"],
+        "Description": "msal-node cca performance playground",
+        "Products": ["azure-active-directory", "msal-node", "passport-azure-ad"]
+    },
+    "AADApps": [
+        {
+            "Id": "client",
+            "Name": "express-web-app-perf",
+            "Kind": "WebApp",
+            "Audience": "AzureADMyOrg",
+            "HomePage": "http://localhost:3000",
+            "ReplyUrls": "http://localhost:3000/auth/redirect",
+            "PasswordCredentials": "Auto",
+            "SampleSubPath": "web-app",
+            "RequiredResourcesAccess": [
+                {
+                    "Resource": "Microsoft Graph",
+                    "DelegatedPermissions": ["User.Read"]
+                }
+            ]
+        },
+        {
+            "Id": "service",
+            "Name": "express-web-api-perf",
+            "Kind": "WebApi",
+            "Audience": "AzureADMyOrg",
+            "SampleSubPath": "web-api",
+            "Scopes": ["access_as_user"],
+            "PasswordCredentials": "Auto",
+            "RequiredResourcesAccess": [
+                {
+                    "Resource": "Microsoft Graph",
+                    "DelegatedPermissions": ["User.Read", "offline_access"]
+                }
+            ]
+        }
+    ],
+    "CodeConfiguration": [
+        {
+            "App": "service",
+            "SettingKind": "Replace",
+            "SettingFile": "\\..\\web-api\\.env",
+            "Mappings": [
+                {
+                    "key": "Enter_the_Application_Id_Here",
+                    "value": ".AppId"
+                },
+                {
+                    "key": "Enter_the_Tenant_Info_Here",
+                    "value": "$tenantId"
+                },
+                {
+                    "key": "Enter_the_Client_Secret_Here",
+                    "value": ".AppKey"
+                },
+                {
+                    "key": "Enter_the_Application_Id_Calling_App_Here",
+                    "value": "client.AppId"
+                },
+                {
+                    "key": "Enter_the_Test_User_Username_Here",
+                    "value": "$userEmail"
+                },
+                {
+                    "key": "Enter_the_Test_User_Password_Here",
+                    "value": "$password"
+                }
+            ]
+        },
+        {
+            "App": "client",
+            "SettingKind": "Replace",
+            "SettingFile": "\\..\\web-app\\.env",
+            "Mappings": [
+                {
+                    "key": "Enter_the_Application_Id_Here",
+                    "value": ".AppId"
+                },
+                {
+                    "key": "Enter_the_Tenant_Info_Here",
+                    "value": "$tenantId"
+                },
+                {
+                    "key": "Enter_the_Client_Secret_Here",
+                    "value": ".AppKey"
+                },
+                {
+                    "key": "Enter_the_Test_User_Username_Here",
+                    "value": "$userEmail"
+                },
+                {
+                    "key": "Enter_the_Test_User_Password_Here",
+                    "value": "$password"
+                }
+            ]
+        }
+    ]
+}
